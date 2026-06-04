@@ -196,7 +196,31 @@ recursive-media-compresser/
 
 ## License
 
-This project does not currently specify a license. Please contact the author [@dragon99z](https://github.com/dragon99z) for usage permissions.
+Recursive Media Compresser is licensed under the **Recursive Media Compresser Copyleft Named User License (RMCNUL) v1.0**.
+
+#### You May
+
+- View the source code
+- Download and use the software
+- Modify the software for personal, educational, or internal use
+- Share unmodified copies with attribution
+
+#### You Must
+
+- Keep this license attached to all copies
+- Document modifications
+- License derivative works under the same license
+- Provide attribution to the original author
+
+#### You May Not
+
+- Redistribute modified versions without permission from dragon99z
+- Use the software commercially without permission from dragon99z
+- Re-license the project under another license
+
+See the `LICENSE` file for the complete terms.
+
+Copyright © 2026 dragon99z.
 
 ---
 
