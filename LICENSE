@@ -1,0 +1,71 @@
+Recursive Media Compresser Copyleft Named User License (RMCNUL) v1.0
+
+Copyright (c) 2026 dragon99z
+
+1. Definitions
+
+"Software" means the Recursive Media Compresser project, including all source code, documentation, scripts, assets, and associated files.
+
+"Named User" means the original copyright holder, dragon99z.
+
+"Derivative Work" means any modification, adaptation, enhancement, translation, or other work based on the Software.
+
+2. Permission to Use
+
+Permission is granted to any person to:
+
+* View the source code.
+* Download the Software.
+* Compile and run the Software.
+* Modify the Software for personal, educational, or internal organizational use.
+
+3. Copyleft Requirement
+
+Any Derivative Work must:
+
+* Include this license in its entirety.
+* Clearly document all modifications.
+* Remain licensed under this license.
+
+No Derivative Work may be relicensed under a different license.
+
+4. Redistribution Restrictions
+
+Redistribution of the original Software is permitted provided that:
+
+* This license remains intact.
+* Proper attribution is given to the Named User.
+
+Redistribution of Derivative Works is prohibited without written permission from the Named User.
+
+5. Commercial Use
+
+Commercial use of the Software or any Derivative Work requires prior written permission from the Named User.
+
+6. Attribution
+
+Any public use, publication, fork, or distribution must prominently include:
+
+"Based on Recursive Media Compresser by dragon99z."
+
+7. Patent Grant
+
+The Named User grants no patent licenses under this agreement.
+
+8. Warranty Disclaimer
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+9. Limitation of Liability
+
+IN NO EVENT SHALL THE NAMED USER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
+
+10. Termination
+
+Any violation of this license automatically terminates all granted rights.
+
+11. Contact
+
+Permission requests may be submitted through the project's GitHub repository:
+
+https://github.com/dragon99z/recursive-media-compresser
