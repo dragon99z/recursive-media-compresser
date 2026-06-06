@@ -33,6 +33,8 @@ Examples:
     python media_compress.py ./media  4  --dry-run --verbose
     python media_compress.py ./media  8  --no-cache
     python media_compress.py ./media  8  --cache-file /tmp/progress.json
+    python media_compress.py ./media  8  --log-dir /var/log/compress
+    python media_compress.py ./media  8  --no-log
 
 Windows notes:
   - Read-only files are automatically un-flagged before deletion.
@@ -73,6 +75,32 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 log = logging.getLogger(__name__)
+
+
+def setup_file_logging(log_dir: Path) -> Path:
+    """
+    Attach a FileHandler to the root logger that writes every log record to a
+    timestamped file for the duration of the run.
+
+    The filename format is:  media_compress_YYYY-MM-DD_HH-MM-SS.log
+    The file handler uses full date+time timestamps (the console keeps HH:MM:SS).
+
+    Returns the path of the log file that was created.
+    """
+    log_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = time.strftime("%Y-%m-%d_%H-%M-%S")
+    log_path  = log_dir / f"media_compress_{timestamp}.log"
+
+    fh = logging.FileHandler(log_path, encoding="utf-8")
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(logging.Formatter(
+        fmt="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    ))
+    logging.getLogger().addHandler(fh)
+    log.info("Log file : %s", log_path)
+    return log_path
+
 
 IS_WINDOWS = platform.system() == "Windows"
 
@@ -1029,6 +1057,20 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Log every skipped file and the reason it was passed over",
     )
+    parser.add_argument(
+        "--log-dir",
+        metavar="DIR",
+        help=(
+            "Directory where the timestamped log file is saved "
+            "(default: logs/ folder next to the script). "
+            "Each run creates one file named media_compress_YYYY-MM-DD_HH-MM-SS.log."
+        ),
+    )
+    parser.add_argument(
+        "--no-log",
+        action="store_true",
+        help="Disable file logging — output goes to the console only.",
+    )
     return parser.parse_args()
 
 
@@ -1040,6 +1082,14 @@ if __name__ == "__main__":
         sys.exit(1)
 
     root_abs = os.path.abspath(args.path)
+
+    # ── Set up file logging ────────────────────────────────────────────────
+    if not args.no_log:
+        root_p  = Path(root_abs)
+        log_dir = Path(args.log_dir) if args.log_dir else (
+            Path(__file__).resolve().parent / "logs"
+        )
+        setup_file_logging(log_dir)
 
     # Resolve cache path (None disables the cache entirely)
     cache_path: Path | None = None
