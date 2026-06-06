@@ -754,6 +754,7 @@ def compress_file(
                 try:
                     st = src.stat()
                     cache.mark_done(src, size=st.st_size, mtime=st.st_mtime, mode=mode)
+                    cache.save()
                 except OSError:
                     pass
             with stats_lock:
@@ -784,6 +785,7 @@ def compress_file(
             try:
                 st = record.stat()
                 cache.mark_done(record, size=st.st_size, mtime=st.st_mtime, mode=mode)
+                cache.save()
             except OSError:
                 pass  # non-fatal: cache miss on next run is fine
 
