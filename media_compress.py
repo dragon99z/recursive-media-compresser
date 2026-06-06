@@ -44,6 +44,8 @@ Windows notes:
     drive (e.g. script on C:, files on Z: network share).
 """
 
+import ctypes
+import errno
 import json
 import os
 import sys
@@ -145,6 +147,25 @@ def _remove_readonly(func, path, _exc_info):
 # Helpers
 # ---------------------------------------------------------------------------
 
+def isWritable(path):
+    try:
+        testfile = tempfile.TemporaryFile(dir = path)
+        testfile.close()
+    except OSError as e:
+        if e.errno == errno.EACCES:  # 13
+            return False
+        e.filename = path
+        raise
+    return True
+
+def setTitle(title: str) -> None:
+    if IS_WINDOWS:
+        ctypes.windll.kernel32.SetConsoleTitleW(title)
+    else:
+        sys.stdout.write(f'\033]0;{title}\a')
+        sys.stdout.flush()
+
+
 def file_size(path: Path) -> int:
     return path.stat().st_size
 
@@ -220,7 +241,7 @@ def ffmpeg_run(args: list[str], verbose: bool = False) -> bool:
     cmd = ["ffmpeg", "-y", "-hide_banner"] + args
     if not verbose:
         cmd += ["-loglevel", "error"]
-    return subprocess.run(cmd).returncode == 0
+    return subprocess.run(cmd, stdin=subprocess.DEVNULL).returncode == 0
 
 
 # ---------------------------------------------------------------------------
@@ -269,6 +290,7 @@ def _test_encoder(codec: str) -> bool:
                 "-y", str(tmp_path),
             ],
             capture_output=True,
+            stdin=subprocess.DEVNULL,
             timeout=30,
         )
         if r.returncode != 0 and r.stderr:
@@ -556,7 +578,7 @@ def compress_video(src: Path, dst: Path, mode: str, verbose: bool) -> bool:
                 "-hwaccel_output_format", "vulkan",   # keep decoded frames on GPU
                 "-hwaccel_device",        "vk",
                 "-i", str(src),
-                "-map", "0",
+                "-map", "0:v?", "-map", "0:a?", "-map", "0:s?", "-map", "0:t?",
                 "-c:v", "ffv1_vulkan",
                 "-strict",   "experimental",
                 "-level",    "3",
@@ -573,7 +595,7 @@ def compress_video(src: Path, dst: Path, mode: str, verbose: bool) -> bool:
             # CPU FFV1: level 3 enables slice-based multithreading
             args = [
                 "-i", str(src),
-                "-map", "0",
+                "-map", "0:v?", "-map", "0:a?", "-map", "0:s?", "-map", "0:t?",
                 "-c:v", "ffv1",
                 "-level",    "3",
                 "-coder",    "1",
@@ -591,7 +613,7 @@ def compress_video(src: Path, dst: Path, mode: str, verbose: bool) -> bool:
                 "-hwaccel",               "cuda",
                 "-hwaccel_output_format", "cuda",   # keep decoded frames on GPU
                 "-i", str(src),
-                "-map", "0",
+                "-map", "0:v?", "-map", "0:a?", "-map", "0:s?", "-map", "0:t?",
                 "-c:v",         nvenc,
                 "-rc",          "vbr",
                 "-cq",          "24",     # quality target (0 = lossless, 51 = worst)
@@ -613,7 +635,7 @@ def compress_video(src: Path, dst: Path, mode: str, verbose: bool) -> bool:
             # CPU x265 — -tag:v hvc1 and -movflags are MP4-only; not used for MKV
             args = [
                 "-i", str(src),
-                "-map", "0",
+                "-map", "0:v?", "-map", "0:a?", "-map", "0:s?", "-map", "0:t?",
                 "-c:v", "libx265",
                 "-crf",    "24",     # quality target (0 = lossless, 51 = worst)
                 "-preset", "slow",
@@ -695,6 +717,13 @@ def compress_file(
         with stats_lock:
             stats["skipped"] += 1
         return True
+    
+    # ── Check Writable ───────────────────────────────────────────────
+    if not isWritable(src.parent):
+        log.error("Destination directory is not writable: %s", src.parent)
+        with stats_lock:
+            stats["errors"] += 1
+        return False
 
     # ── Min-size guard ────────────────────────────────────────────────────
     if min_size > 0 and before < min_size:
@@ -920,6 +949,8 @@ def run(
     )
     print()
 
+    total = len(candidates)
+    done  = 0
     with ThreadPoolExecutor(max_workers=thread_count) as executor:
         futures = {
             executor.submit(
@@ -930,6 +961,8 @@ def run(
         }
         for future in as_completed(futures):
             future.result()   # exceptions are caught and logged inside compress_file
+            done += 1
+            setTitle(f"Compressing media {done}/{total}")
 
     if cache is not None:
         cache.save()
